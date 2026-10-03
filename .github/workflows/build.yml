@@ -1,0 +1,125 @@
+name: Build AzCut Setup.exe
+
+# GitHub ke free cloud computer par Windows installer banata hai.
+# Chalane ke liye: repo ke "Actions" tab -> "Build AzCut Setup.exe" -> "Run workflow".
+# Khatam hone par "Releases" mein AzCut-Setup-X.Y.exe khud aa jayegi.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4
+
+      - name: Source unzip karein
+        shell: pwsh
+        run: Expand-Archive -Path narrasync-app.zip -DestinationPath src -Force
+
+      - name: Version parhein (pipeline.py se)
+        id: ver
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          $v = (Select-String -Path pipeline.py -Pattern 'PIPELINE_VERSION = "([^"]+)"').Matches.Groups[1].Value
+          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          Write-Host "Version: $v"
+
+      - name: Python 3.12 setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Libraries install karein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: ffmpeg download karein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          New-Item -ItemType Directory -Force -Path build/assets | Out-Null
+          Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile "$env:TEMP/ffmpeg.zip"
+          Expand-Archive -Path "$env:TEMP/ffmpeg.zip" -DestinationPath "$env:TEMP/ffx" -Force
+          $exe = Get-ChildItem "$env:TEMP/ffx" -Recurse -Filter ffmpeg.exe | Select-Object -First 1
+          Copy-Item $exe.FullName 'build/assets/ffmpeg.exe'
+
+      - name: vc_redist download karein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -OutFile 'build/assets/vc_redist.x64.exe'
+
+      - name: Voice model + update repo
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          $p = python -c "from huggingface_hub import snapshot_download; print(snapshot_download(repo_id='guillaumekln/faster-whisper-base'))"
+          New-Item -ItemType Directory -Force -Path build/assets/model | Out-Null
+          Copy-Item "$p/*" 'build/assets/model/' -Recurse -Force
+          "abrarfriend0/azcut" | Out-File -FilePath update_repo.txt -Encoding utf8 -NoNewline
+
+      - name: PyInstaller se EXE banayein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          pyinstaller --noconfirm --clean --name AzCut --windowed --icon icon.ico `
+            --add-data "static;static" `
+            --add-data "icon.ico;." `
+            --add-data "build/assets/ffmpeg.exe;." `
+            --add-data "build/assets/model;model" `
+            --add-data "update_repo.txt;." `
+            --hidden-import webview `
+            --hidden-import webview.platforms.edgechromium `
+            --hidden-import webview.platforms.winforms `
+            --hidden-import webview.platforms.cef `
+            --hidden-import webview.platforms.mshtml `
+            --hidden-import clr --hidden-import clr_loader --hidden-import pythonnet `
+            --collect-all faster_whisper `
+            --collect-all ctranslate2 `
+            --collect-all onnxruntime `
+            --collect-all cv2 `
+            --collect-data webview `
+            desktop.py
+
+      - name: EXE test karein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          Start-Process -FilePath "dist\AzCut\AzCut.exe"
+          Start-Sleep -Seconds 20
+          $ver = (Invoke-WebRequest -Uri 'http://127.0.0.1:5000/api/version' -UseBasicParsing).Content
+          Write-Host "Version check: $ver"
+          if ($ver -notmatch [regex]::Escape("${{ steps.ver.outputs.version }}")) { throw "Version match nahi hui!" }
+          Stop-Process -Name "AzCut" -Force -ErrorAction SilentlyContinue
+
+      - name: Inno Setup install karein
+        shell: pwsh
+        run: choco install innosetup -y
+
+      - name: Installer compile karein
+        shell: pwsh
+        working-directory: src/narrasync-app
+        run: |
+          $v = "${{ steps.ver.outputs.version }}"
+          $iss = Get-Content installer.iss -Raw
+          $iss = $iss -replace '#define MyAppVersion "[^"]+"', ('#define MyAppVersion "' + $v + '"')
+          $iss = $iss -replace 'OutputBaseFilename=AzCut-Setup-[0-9.]+', ('OutputBaseFilename=AzCut-Setup-' + $v)
+          $iss | Out-File installer.iss -Encoding utf8 -NoNewline
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: GitHub Release banayein
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          name: Az Cut v${{ steps.ver.outputs.version }}
+          files: src/narrasync-app/Output/AzCut-Setup-*.exe
