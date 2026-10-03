@@ -1,0 +1,42 @@
+========================================
+ Az Cut — Install Guide (dost ke liye)
+========================================
+
+Ye software aap ke dost ne aap ko bheja hai. Neeche diye gaye
+steps follow karein — 10 minute mein chal jayega.
+
+ZAROORI: Install ke waqt internet hona chahiye.
+
+STEP 1 — Python install karein
+  - https://www.python.org/downloads/ kholein
+  - "Download Python" dabayein aur install karein
+  - *** Install ke waqt "Add python.exe to PATH" wala tick
+    ZAROOR lagayein (neeche chhota checkbox hota hai) ***
+
+STEP 2 — ffmpeg install karein
+  - Start menu mein "cmd" likh ke Enter dabayein (kaali window khulegi)
+  - Ye likh ke Enter dabayein:
+      winget install ffmpeg
+  - Kaali window band kar dein
+
+STEP 3 — Zip extract karein
+  - Az Cut wali zip ko kisi folder mein extract karein
+    (right-click -> Extract All)
+
+STEP 4 — install.bat chalayein
+  - Folder mein "install.bat" par double-click karein
+  - Kaali window khulegi aur sab kuch khud install ho jayega
+  - 3-5 minute lag sakte hain — window band na karein
+  - Aakhir mein "Setup mukammal!" likha aayega
+
+STEP 5 — Chalayein!
+  - "AzCut.bat" par double-click karein — Az Cut khul jayega!
+
+Rozana istemal: bas "AzCut.bat" chalana hai. install.bat
+sirf pehli baar chalana hai.
+
+Desktop shortcut: "AzCut.bat" par right-click -> Send to ->
+Desktop (create shortcut). Shortcut par right-click -> Properties ->
+Change Icon -> "icon.ico" select karein.
+
+Masla aaye to jis dost ne bheja hai us se poochein!

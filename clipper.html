@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Clipper — Az Cut</title>
+<style>
+:root{--bg:#0c0e13;--panel:#141824;--panel2:#1a2030;--line:#262d40;--txt:#eef1f8;--mut:#9aa3b8;
+--acc:#ec4899;--acc2:#f472b6;--ok:#2ed573;--radius:14px}
+*{box-sizing:border-box}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx::before{content:"";position:absolute;inset:-60px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.14;
+  -webkit-mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  animation:gridpan 26s linear infinite}
+@keyframes gridpan{to{transform:translateY(44px)}}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.o1{width:440px;height:440px;background:var(--acc);top:-130px;right:-90px}
+.o2{width:400px;height:400px;background:#3b82f6;bottom:-150px;left:-110px;animation-delay:-9s}
+@keyframes drift{to{transform:translate(70px,45px) scale(1.15)}}
+[data-theme="light"] .orb{opacity:.15}
+[data-theme="light"]{--bg:#edf1f8;--panel:#ffffff;--panel2:#f5f7fc;--line:#d8dfee;--txt:#151a28;--mut:#5c6579}
+.azlogo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:17px;
+  letter-spacing:1px;color:#fff;font-family:"Arial Black",Arial,sans-serif;flex:none;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.themebtn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:20px;
+  padding:6px 12px;font-size:14px;cursor:pointer}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#3a1530 0%,var(--bg) 55%) fixed,var(--bg);
+color:var(--txt);font-family:"Segoe UI",system-ui,sans-serif;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+background:rgba(12,14,19,.85);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 4px 18px rgba(236,72,153,.4)}
+.brand h1{margin:0;font-size:20px}.brand p{margin:2px 0 0;font-size:12px;color:var(--mut)}
+.home-link{color:var(--mut);text-decoration:none;font-size:13px;font-weight:600}.home-link:hover{color:var(--txt)}
+main{max-width:760px;margin:0 auto;padding:30px 20px 60px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+border-top:3px solid var(--acc);border-radius:var(--radius);padding:26px}
+.card h2{margin:0 0 6px;font-size:20px}.card .sub{margin:0 0 18px;font-size:13px;color:var(--mut);line-height:1.6}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:30px;text-align:center;cursor:pointer;
+transition:.2s;color:var(--mut);font-size:14px}
+.drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(236,72,153,.06)}
+.drop b{color:var(--acc2)}
+.btn{display:inline-block;border:0;border-radius:10px;padding:13px 26px;font-size:14px;font-weight:700;
+cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));
+box-shadow:0 4px 16px rgba(236,72,153,.35);transition:.15s}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:wait}
+.feats{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.feats span{font-size:12px;font-weight:600;color:var(--mut);background:rgba(255,255,255,.05);
+border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+.status{font-size:13px;color:var(--mut);margin-top:12px;min-height:20px}
+.status.ok{color:var(--ok)}.status.err{color:#ff6b81}
+video{max-width:340px;width:100%;border-radius:12px;border:1px solid var(--line);margin-top:14px;background:#000;display:block}
+.dl{display:inline-block;margin-top:12px;color:#fff;text-decoration:none;font-weight:700;
+background:linear-gradient(135deg,#1e9e5a,#2ed573);padding:12px 24px;border-radius:10px}
+#resultWrap{display:none;text-align:center}
+.modes{display:flex;gap:10px;margin:16px 0}
+.mode{flex:1;border:1px solid var(--line);background:var(--panel2);color:var(--mut);border-radius:10px;
+padding:12px;font-size:13px;font-weight:700;cursor:pointer}
+.mode.on{border-color:var(--acc);color:var(--txt);background:rgba(236,72,153,.12)}
+.optgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.f{display:block;font-size:12px;font-weight:600;color:var(--mut);margin-bottom:4px}
+select{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;
+padding:10px;width:100%;font-size:13px}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;margin:12px 0}
+.check input{width:16px;height:16px;accent-color:var(--acc)}
+.note{font-size:12px;color:var(--mut);line-height:1.6;margin:10px 0 0}
+.cliplist{display:flex;flex-direction:column;gap:16px;margin-top:10px}
+.clipitem{border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(255,255,255,.02)}
+.clipitem h3{margin:0 0 8px;font-size:14px}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:26px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb o1"></div><div class="orb o2"></div></div>
+<header class="topbar">
+  <div class="brand"><div class="azlogo">AZ</div><div><h1>AI Clipper</h1><p>landscape video → vertical Shorts</p></div></div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="home-link" href="/">← Home</a>
+    <button class="themebtn" id="themeBtn" title="Day / Night mode">☀️</button>
+  </div>
+</header>
+<main>
+<div class="card">
+  <h2>✂ Make a Short</h2>
+  <p class="sub">Upload your 16:9 (YouTube) video — Az Cut detects faces and reframes it to <b>9:16 vertical</b> (Shorts/Reels/TikTok). The speaker stays in frame.</p>
+  <div class="drop" id="dropZone">📁 <b>Click</b> or <b>drop</b> a video file here<input type="file" id="videoInput" accept="video/*" hidden></div>
+  <div class="modes">
+    <button class="mode on" id="modeSingle">✂ Single 9:16 crop</button>
+    <button class="mode" id="modeAuto">🎯 Auto clips (engaging moments)</button>
+  </div>
+  <div id="singleDesc" class="feats"><span>🎯 Face Tracking</span><span>📱 9:16 Smart Crop</span><span>⚡ No Jitter</span></div>
+  <div id="autoOpts" style="display:none">
+    <div class="optgrid">
+      <div><label class="f">Number of clips</label><select id="nClips"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select></div>
+      <div><label class="f">Clip duration</label><select id="clipDur"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="45">45 seconds</option><option value="60">60 seconds</option></select></div>
+      <div><label class="f">Camera</label><select id="camMode"><option value="face">🎯 Face tracking</option><option value="center">⬛ Centered</option></select></div>
+      <div><label class="f">⚡ Transcription speed</label><select id="modelSel"></select></div>
+    </div>
+    <label class="check"><input type="checkbox" id="capOn" checked> 💬 Add captions on clips</label>
+    <div><label class="f">Caption template</label><select id="capPreset"></select></div>
+    <p class="note">Works on <b>any language</b> — engaging moments are found by audio energy (cheers, laughter, intensity), not by words.</p>
+  </div>
+  <div><button class="btn" id="btnGo">✂ Make clip</button></div>
+  <div class="status" id="status"></div>
+  <div id="resultWrap">
+    <video id="videoOut" controls></video><br>
+    <a class="dl" id="downloadLink" href="#">⬇ Download Short</a>
+  </div>
+  <div class="cliplist" id="clipList"></div>
+</div>
+</main>
+<footer><b>Az Cut</b> runs 100% on your own computer — your files never leave this machine.</footer>
+<script>
+const $=id=>document.getElementById(id);
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem('azcut-theme',t);
+  const b=document.getElementById('themeBtn'); if(b) b.textContent = t==='light' ? '🌙' : '☀️';}
+setTheme(localStorage.getItem('azcut-theme')||'dark');
+document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+
+fetch('/api/options').then(r=>r.json()).then(o=>{
+  const ps=$('capPreset');
+  const g1=document.createElement('optgroup'); g1.label='⭐ Top 10 Viral Templates';
+  o.top_presets.forEach(k=>{const op=document.createElement('option');op.value=k;op.textContent='⭐ '+o.caption_presets[k];g1.appendChild(op);});
+  ps.appendChild(g1);
+  const g2=document.createElement('optgroup'); g2.label='All '+Object.keys(o.caption_presets).length+' Styles';
+  Object.entries(o.caption_presets).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;g2.appendChild(op);});
+  ps.appendChild(g2);
+  Object.entries(o.transcribe_models||{}).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;$('modelSel').appendChild(op);});
+  $('modelSel').value='base';
+});
+
+let autoMode=false;
+$('modeSingle').onclick=()=>{autoMode=false;$('modeSingle').classList.add('on');$('modeAuto').classList.remove('on');
+  $('autoOpts').style.display='none';$('singleDesc').style.display='flex';$('btnGo').textContent='✂ Make clip';};
+$('modeAuto').onclick=()=>{autoMode=true;$('modeAuto').classList.add('on');$('modeSingle').classList.remove('on');
+  $('autoOpts').style.display='block';$('singleDesc').style.display='none';$('btnGo').textContent='🎯 Find engaging clips';};
+
+const dz=$('dropZone'), vi=$('videoInput');
+dz.onclick=()=>vi.click();
+['dragover','dragenter'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over');}));
+dz.addEventListener('drop',ev=>{if(ev.dataTransfer.files.length){vi.files=ev.dataTransfer.files;showName();}});
+vi.onchange=showName;
+function showName(){const f=vi.files[0];if(f)$('status').textContent='📹 '+f.name;$('status').className='status';}
+$('btnGo').onclick=()=>{
+  const f=vi.files[0]; if(!f){alert('Please select a video first!');return;}
+  const fd=new FormData(); fd.append('video',f);
+  $('btnGo').disabled=true; $('resultWrap').style.display='none'; $('clipList').innerHTML='';
+  if(autoMode){
+    fd.append('n_clips',$('nClips').value);
+    fd.append('clip_dur',$('clipDur').value);
+    fd.append('cam',$('camMode').value);
+    fd.append('model',$('modelSel').value||'base');
+    if($('capOn').checked){fd.append('cap_on','1');fd.append('cap_preset',$('capPreset').value);}
+    $('status').textContent='⏳ Finding the most engaging moments… (long videos take a few minutes)'; $('status').className='status';
+    fetch('/api/autoclip',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+      if(d.error){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+      pollAuto(d.job_id);
+    });
+    return;
+  }
+  $('status').textContent='⏳ Detecting faces and building the 9:16 crop…'; $('status').className='status';
+  fetch('/api/clipper',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.error){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+    poll(d.job_id);
+  });
+};
+function pollAuto(id){
+  fetch('/api/clips/'+id).then(r=>r.json()).then(d=>{
+    if(d.status==='error'){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+    if(d.status==='done'){
+      $('status').textContent='✅ '+d.clips.length+' engaging clips ready!';$('status').className='status ok';
+      const list=$('clipList');
+      d.clips.forEach(n=>{
+        const div=document.createElement('div'); div.className='clipitem';
+        div.innerHTML='<h3>🎬 Clip '+n+'</h3>';
+        const v=document.createElement('video'); v.controls=true;
+        v.src='/api/clips/'+id+'/'+n+'/preview'; div.appendChild(v);
+        list.appendChild(div);
+      });
+      const dl=document.createElement('div');
+      dl.innerHTML='<a class="dl" href="/api/clips/'+id+'/download">⬇ Download all clips (ZIP)</a>';
+      list.appendChild(dl);
+      $('btnGo').disabled=false;return;
+    }
+    setTimeout(()=>pollAuto(id),2500);
+  });
+}
+function poll(id){
+  fetch('/api/render/'+id).then(r=>r.json()).then(d=>{
+    if(d.status==='error'){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+    if(d.status==='done'){
+      $('status').textContent='✅ Short ready! '+(d.faces?('🎯 '+d.faces+' faces found'):'');$('status').className='status ok';
+      $('videoOut').src='/api/render/'+id+'/preview';$('downloadLink').href='/api/render/'+id+'/download';
+      $('resultWrap').style.display='block';$('btnGo').disabled=false;return;
+    }
+    setTimeout(()=>poll(id),2000);
+  });
+}
+</script>
+</body>
+</html>

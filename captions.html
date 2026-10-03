@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Caption Generator — Az Cut</title>
+<style>
+:root{--bg:#0c0e13;--panel:#141824;--panel2:#1a2030;--line:#262d40;--txt:#eef1f8;--mut:#9aa3b8;
+--acc:#14b8a6;--acc2:#2dd4bf;--ok:#2ed573;--radius:14px}
+[data-theme="light"]{--bg:#edf1f8;--panel:#ffffff;--panel2:#f5f7fc;--line:#d8dfee;--txt:#151a28;--mut:#5c6579}
+[data-theme="light"] body{background:radial-gradient(1200px 600px at 80% -10%,#d9efe9 0%,var(--bg) 55%) fixed,var(--bg)}
+*{box-sizing:border-box}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx::before{content:"";position:absolute;inset:-60px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.14;
+  -webkit-mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  animation:gridpan 26s linear infinite}
+@keyframes gridpan{to{transform:translateY(44px)}}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.o1{width:440px;height:440px;background:#14b8a6;top:-130px;right:-90px}
+.o2{width:400px;height:400px;background:#3b82f6;bottom:-150px;left:-110px;animation-delay:-9s}
+@keyframes drift{to{transform:translate(70px,45px) scale(1.15)}}
+[data-theme="light"] .orb{opacity:.15}
+.azlogo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:17px;
+  letter-spacing:1px;color:#fff;font-family:"Arial Black",Arial,sans-serif;flex:none;
+  background:linear-gradient(135deg,#14b8a6,#2dd4bf);
+  box-shadow:0 4px 18px rgba(20,184,166,.45),inset 0 1px 0 rgba(255,255,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.themebtn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:20px;
+  padding:6px 12px;font-size:14px;cursor:pointer}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#0f2f2b 0%,var(--bg) 55%) fixed,var(--bg);
+color:var(--txt);font-family:"Segoe UI",system-ui,sans-serif;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+background:rgba(12,14,19,.85);border-bottom:1px solid var(--line)}
+[data-theme="light"] .topbar{background:rgba(255,255,255,.88)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font-size:20px}.brand p{margin:2px 0 0;font-size:12px;color:var(--mut)}
+.home-link{color:var(--mut);text-decoration:none;font-size:13px;font-weight:600}.home-link:hover{color:var(--txt)}
+main{max-width:820px;margin:0 auto;padding:30px 20px 60px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+border-top:3px solid var(--acc);border-radius:var(--radius);padding:26px}
+.card h2{margin:0 0 6px;font-size:20px}.card .sub{margin:0 0 18px;font-size:13px;color:var(--mut);line-height:1.6}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:30px;text-align:center;cursor:pointer;
+transition:.2s;color:var(--mut);font-size:14px}
+.drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(20,184,166,.06)}
+.drop b{color:var(--acc2)}
+.btn{display:inline-block;border:0;border-radius:10px;padding:13px 26px;font-size:14px;font-weight:700;
+cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));
+box-shadow:0 4px 16px rgba(20,184,166,.35);transition:.15s;text-decoration:none}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:wait}
+label.f{display:block;font-size:12px;color:var(--mut);margin:12px 0 5px;font-weight:600}
+select,input[type=number],input[type=color]{background:#0e1220;color:var(--txt);border:1px solid var(--line);
+border-radius:8px;padding:9px 10px;font-size:13px;width:100%}
+[data-theme="light"] select,[data-theme="light"] input[type=number],[data-theme="light"] input[type=color]{background:#f0f3fa}
+input[type=range]{width:100%;accent-color:var(--acc);background:transparent;border:0;padding:0}
+.optgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;cursor:pointer;
+background:#0e1220;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:10px}
+[data-theme="light"] .check{background:#f0f3fa}
+.check input{width:18px;height:18px;accent-color:var(--acc)}
+details.cust{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:rgba(0,0,0,.15)}
+[data-theme="light"] details.cust{background:#f0f3fa}
+details.cust summary{cursor:pointer;font-size:13px;font-weight:700}
+.posgrid{display:grid;grid-template-columns:repeat(3,44px);gap:6px;margin-top:4px}
+.posgrid button{width:44px;height:36px;border-radius:8px;border:1px solid var(--line);background:#0e1220;
+  color:var(--mut);font-size:15px;cursor:pointer}
+[data-theme="light"] .posgrid button{background:#f0f3fa}
+.posgrid button.on{border-color:var(--acc);color:var(--acc);box-shadow:0 0 10px rgba(20,184,166,.5)}
+.status{font-size:13px;color:var(--mut);margin-top:12px;min-height:20px}
+.status.ok{color:var(--ok)}.status.err{color:#ff6b81}
+video{width:100%;border-radius:12px;border:1px solid var(--line);margin-top:14px;background:#000}
+.dl{display:inline-block;margin-top:12px;color:#fff;text-decoration:none;font-weight:700;
+background:linear-gradient(135deg,#1e9e5a,#2ed573);padding:12px 24px;border-radius:10px}
+#resultWrap{display:none}
+.rowbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:26px;border-top:1px solid var(--line)}
+@media(max-width:600px){.optgrid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb o1"></div><div class="orb o2"></div></div>
+<header class="topbar">
+  <div class="brand"><div class="azlogo">AZ</div><div><h1>Auto Caption Generator</h1><p>karaoke captions on any video</p></div></div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="home-link" href="/">← Home</a>
+    <button class="themebtn" id="themeBtn" title="Day / Night mode">☀️</button>
+  </div>
+</header>
+<main>
+<div class="card">
+  <h2>💬 Generate captions</h2>
+  <p class="sub">Upload any video — speech is recognized automatically and styled captions are burned in. Pick one of <b id="presetCount2">30</b> templates, then fine-tune everything.</p>
+  <div class="drop" id="dropZone">📁 <b>Click</b> or <b>drop</b> a video file here<input type="file" id="videoInput" accept="video/*" hidden></div>
+  <div class="row" style="max-width:420px"><label class="f">⚡ Transcription speed</label><select id="modelSel"></select></div>
+
+  <div style="max-width:420px"><label class="f">⭐ Template (<span id="presetCount">30</span> styles)</label><select id="capPreset"></select></div>
+  <details class="cust"><summary>🎨 Customize</summary>
+    <div class="optgrid">
+      <div><label class="f">Font</label><select id="capFont"></select></div>
+      <div><label class="f">Size</label><input type="number" id="capSize" value="64" min="20" max="160"></div>
+      <div><label class="f">Words per line</label><input type="number" id="capWpl" value="4" min="1" max="20"></div>
+      <div><label class="f">Text color</label><input type="color" id="capColor" value="#FFFFFF"></div>
+      <div><label class="f">Highlight</label><input type="color" id="capHi" value="#FFE600"></div>
+      <div><label class="f">Outline color</label><input type="color" id="capOline" value="#000000"></div>
+      <div><label class="f">Outline width</label><input type="number" id="capOutline" value="2" min="0" max="8"></div>
+      <div><label class="f">Shadow</label><input type="number" id="capShadow" value="1" min="0" max="8"></div>
+      <div><label class="f">Lines</label><select id="capLines"><option value="1">1 line</option><option value="2">2 lines</option></select></div>
+      <div><label class="f">Word tracking</label><select id="capKaraoke"><option value="word">Karaoke highlight</option><option value="reveal">Word reveal</option><option value="none">Off</option></select></div>
+      <div><label class="f">Line animation</label><select id="capAnim"></select></div>
+      <div><label class="f">Glow color</label><input type="color" id="capGlow" value="#00F0FF"></div>
+    </div>
+    <div><label class="f">Position — click anywhere on the grid, then fine-tune</label>
+      <div class="posgrid" id="posGrid"></div>
+    </div>
+    <div class="optgrid" style="margin-top:8px">
+      <div><label class="f">Move X (<span id="dxVal">0</span>)</label><input type="range" id="capDx" min="-300" max="300" value="0"></div>
+      <div><label class="f">Move Y (<span id="dyVal">0</span>)</label><input type="range" id="capDy" min="-200" max="200" value="0"></div>
+      <div></div>
+    </div>
+    <div class="rowbtns">
+      <label class="check"><input type="checkbox" id="capBold" checked> Bold</label>
+      <label class="check"><input type="checkbox" id="capGlowOn"> Glow</label>
+      <label class="check"><input type="checkbox" id="capUpper"> UPPERCASE</label>
+      <label class="check"><input type="checkbox" id="capBg"> Background box</label>
+    </div>
+  </details>
+
+  <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn" id="btnGo">💬 Generate captions</button>
+    <button class="btn secondary" id="btnPreview">👁 Preview (5s sample)</button>
+  </div>
+  <div class="status" id="status"></div>
+  <div id="prevWrap" style="display:none;margin-top:10px">
+    <video id="prevVideo" controls style="max-width:100%;max-height:320px;border-radius:10px"></video>
+  </div>
+  <div id="resultWrap">
+    <video id="videoOut" controls></video><br>
+    <a class="dl" id="downloadLink" href="#">⬇ Download MP4</a>
+  </div>
+</div>
+</main>
+<footer><b>Az Cut</b> runs 100% on your own computer — your files never leave this machine.</footer>
+<script>
+const $=id=>document.getElementById(id);
+let presetDetails={};
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem('azcut-theme',t);
+  const b=$('themeBtn'); if(b) b.textContent = t==='light' ? '🌙' : '☀️';}
+setTheme(localStorage.getItem('azcut-theme')||'dark');
+$('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+
+const GRIDS=[["top-left","↖"],["top-center","↑"],["top-right","↗"],["middle-left","←"],["middle-center","✛"],["middle-right","→"],["bottom-left","↙"],["bottom-center","↓"],["bottom-right","↘"]];
+let curGrid="bottom-center";
+function renderPosGrid(){
+  const g=$('posGrid'); g.innerHTML='';
+  GRIDS.forEach(([id,arrow])=>{
+    const b=document.createElement('button'); b.textContent=arrow; b.title=id;
+    if(id===curGrid) b.classList.add('on');
+    b.onclick=e=>{e.preventDefault();curGrid=id;renderPosGrid();};
+    g.appendChild(b);
+  });
+}
+renderPosGrid();
+fetch('/api/options').then(r=>r.json()).then(o=>{
+  const ps=$('capPreset');
+  const g1=document.createElement('optgroup'); g1.label='⭐ Top 10 Viral Templates';
+  o.top_presets.forEach(k=>{const op=document.createElement('option');op.value=k;op.textContent='⭐ '+o.caption_presets[k];g1.appendChild(op);});
+  ps.appendChild(g1);
+  const g2=document.createElement('optgroup'); g2.label='All '+Object.keys(o.caption_presets).length+' Styles';
+  Object.entries(o.caption_presets).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;g2.appendChild(op);});
+  ps.appendChild(g2);
+  const n=Object.keys(o.caption_presets).length;
+  $('presetCount').textContent=n; $('presetCount2').textContent=n;
+  Object.entries(o.transcribe_models||{}).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;$('modelSel').appendChild(op);});
+  $('modelSel').value='base';
+  presetDetails=o.preset_details||{};
+  o.caption_fonts.forEach(f=>{const op=document.createElement('option');op.value=f;op.textContent=f;$('capFont').appendChild(op);});
+  Object.entries(o.caption_anims).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;$('capAnim').appendChild(op);});
+  applyPreset('hormozi');
+});
+function applyPreset(id){
+  const d=presetDetails[id]; if(!d) return;
+  $('capFont').value=d.font||'Montserrat'; $('capSize').value=d.size||64;
+  $('capWpl').value=d.wpl||4; $('capColor').value=d.color||'#FFFFFF';
+  $('capHi').value=d.hl||'#FFE600'; $('capOline').value=d.outline_color||'#000000';
+  $('capOutline').value=d.outline??2; $('capShadow').value=d.shadow??1;
+  $('capLines').value=String(d.lines||1); $('capKaraoke').value=d.karaoke||'word';
+  $('capAnim').value=d.anim||'pop'; $('capBold').checked=!!d.bold;
+  $('capUpper').checked=!!d.uppercase; $('capBg').checked=!!d.box;
+  $('capGlowOn').checked=!!d.glow; if(d.glow) $('capGlow').value=d.glow;
+  curGrid=d.grid||'bottom-center'; renderPosGrid();
+  $('capDx').value=d.dx||0; $('capDy').value=d.dy||0;
+  $('dxVal').textContent=$('capDx').value; $('dyVal').textContent=$('capDy').value;
+}
+$('capPreset').onchange=e=>applyPreset(e.target.value);
+$('capDx').oninput=e=>$('dxVal').textContent=e.target.value;
+$('capDy').oninput=e=>$('dyVal').textContent=e.target.value;
+
+const dz=$('dropZone'), vi=$('videoInput');
+dz.onclick=()=>vi.click();
+['dragover','dragenter'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over');}));
+dz.addEventListener('drop',ev=>{if(ev.dataTransfer.files.length){vi.files=ev.dataTransfer.files;showName();}});
+vi.onchange=showName;
+function showName(){const f=vi.files[0];if(f){$('status').textContent='📹 '+f.name;$('status').className='status';}}
+function capForm(fd){
+  fd.append('cap_preset',$('capPreset').value);
+  fd.append('cap_font',$('capFont').value); fd.append('cap_size',$('capSize').value);
+  fd.append('cap_wpl',$('capWpl').value); fd.append('cap_lines',$('capLines').value);
+  fd.append('cap_color',$('capColor').value); fd.append('cap_hl',$('capHi').value);
+  fd.append('cap_oline',$('capOline').value); fd.append('cap_outline',$('capOutline').value);
+  fd.append('cap_shadow',$('capShadow').value);
+  fd.append('cap_glow',$('capGlowOn').checked?$('capGlow').value:'');
+  fd.append('cap_grid',curGrid);
+  fd.append('cap_dx',$('capDx').value); fd.append('cap_dy',$('capDy').value);
+  fd.append('cap_karaoke',$('capKaraoke').value); fd.append('cap_anim',$('capAnim').value);
+  fd.append('cap_bold',$('capBold').checked?'1':'0');
+  fd.append('cap_upper',$('capUpper').checked?'1':'0');
+  fd.append('cap_box',$('capBg').checked?'1':'0');
+  fd.append('model',$('modelSel').value||'base');
+}
+$('btnGo').onclick=()=>{
+  const f=vi.files[0]; if(!f){alert('Please select a video first!');return;}
+  const fd=new FormData(); fd.append('video',f);
+  capForm(fd);
+  $('btnGo').disabled=true; $('resultWrap').style.display='none'; $('prevWrap').style.display='none';
+  $('status').textContent='⏳ Recognizing speech and burning captions…'; $('status').className='status';
+  fetch('/api/caption',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.error){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+    poll(d.job_id);
+  });
+};
+$('btnPreview').onclick=()=>{
+  const f=vi.files[0]; if(!f){alert('Please select a video first!');return;}
+  const fd=new FormData(); fd.append('video',f);
+  capForm(fd);
+  $('btnPreview').disabled=true; $('prevWrap').style.display='none';
+  $('status').textContent='⏳ Rendering 5s preview…'; $('status').className='status';
+  fetch('/api/caption-preview',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.error){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnPreview').disabled=false;return;}
+    pollPreview(d.job_id);
+  });
+};
+function pollPreview(id){
+  fetch('/api/render/'+id).then(r=>r.json()).then(d=>{
+    if(d.status==='error'){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnPreview').disabled=false;return;}
+    if(d.status==='done'){
+      $('status').textContent='✅ Preview ready — exactly how your captions will look.';$('status').className='status ok';
+      $('prevVideo').src='/api/render/'+id+'/preview';
+      $('prevWrap').style.display='block';$('btnPreview').disabled=false;return;
+    }
+    setTimeout(()=>pollPreview(id),1200);
+  });
+}
+function poll(id){
+  fetch('/api/render/'+id).then(r=>r.json()).then(d=>{
+    if(d.status==='error'){$('status').textContent='❌ '+d.error;$('status').className='status err';$('btnGo').disabled=false;return;}
+    if(d.status==='done'){
+      $('status').textContent='✅ Captions done! ('+(d.words||'')+' words)';$('status').className='status ok';
+      $('videoOut').src='/api/render/'+id+'/preview';$('downloadLink').href='/api/render/'+id+'/download';
+      $('resultWrap').style.display='block';$('btnGo').disabled=false;return;
+    }
+    setTimeout(()=>poll(id),2000);
+  });
+}
+</script>
+</body>
+</html>

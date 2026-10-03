@@ -1,0 +1,52 @@
+========================================
+ Az Cut - Auto-Update Guide (sirf aap ke liye)
+========================================
+
+Is system se aap ke doston ko naye versions khud mil jayenge -
+un ke Az Cut mein banner aayega aur ek click mein update ho jayega.
+
+SIRF PEHLI BAAR - GitHub setup (5 minute):
+----------------------------------------
+1. https://github.com kholein aur free account banayein
+   (Sign up -> email -> password -> username chunein)
+
+2. Login ke baad upar "+" dabayein -> "New repository"
+
+3. Repository name likhein:  azcut
+   "Public" tick rehne dein -> "Create repository" dabayein
+
+4. Apna username note kar lein (upar right corner mein nazar aayega)
+
+5. Jab build_installer.bat chalayein to jab GitHub username mange,
+   wahi username likhein. Bas!
+
+HAR NAYE UPDATE PAR - release karna:
+----------------------------------------
+1. Nayi zip se files update karein, phir build_installer.bat chalayein
+   (GitHub username dobara likhna parega - yaad rakhein)
+
+2. Output\AzCut-Setup-X.Y.exe ban jayegi
+
+3. https://github.com kholein -> apni "azcut" repository kholein
+
+4. Right side mein "Releases" -> "Draft a new release" dabayein
+
+5. "Choose a tag" mein likhein:  v0.9   (jo version ho, v laga kar)
+   "Release title" mein bhi:  v0.9
+
+6. Neeche "Attach binaries" wale hisse mein AzCut-Setup-X.Y.exe
+   wali file drag kar ke chhor dein (upload ho jayegi)
+
+7. "Publish release" dabayein. HO GAYA!
+
+Ab jin doston ne Az Cut install kiya hai, un ke paas agli baar
+app kholne par banner aayega: "Naya update aaya hai!"
+Ek click -> download -> install -> dobara khul jayega.
+
+ZAROORI BAATEIN:
+- Har release ka tag (v0.9) pipeline version se NAYA hona chahiye,
+  warna update show nahi hoga.
+- File ka naam AzCut-Setup- se shuru hona chahiye (build script
+  ye naam khud banata hai).
+- Dost ke paas update check ke liye internet hona chahiye
+  (sirf check/download ke liye - baqi sab offline chalta hai).

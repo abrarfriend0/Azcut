@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Audio Transcriber — Az Cut</title>
+<style>
+:root{--bg:#0c0e13;--panel:#141824;--panel2:#1a2030;--line:#262d40;--txt:#eef1f8;--mut:#9aa3b8;
+--acc:#3b82f6;--acc2:#60a5fa;--ok:#2ed573;--radius:14px}
+*{box-sizing:border-box}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx::before{content:"";position:absolute;inset:-60px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.14;
+  -webkit-mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  animation:gridpan 26s linear infinite}
+@keyframes gridpan{to{transform:translateY(44px)}}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.o1{width:440px;height:440px;background:var(--acc);top:-130px;right:-90px}
+.o2{width:400px;height:400px;background:#3b82f6;bottom:-150px;left:-110px;animation-delay:-9s}
+@keyframes drift{to{transform:translate(70px,45px) scale(1.15)}}
+[data-theme="light"] .orb{opacity:.15}
+[data-theme="light"]{--bg:#edf1f8;--panel:#ffffff;--panel2:#f5f7fc;--line:#d8dfee;--txt:#151a28;--mut:#5c6579}
+.azlogo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:17px;
+  letter-spacing:1px;color:#fff;font-family:"Arial Black",Arial,sans-serif;flex:none;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.themebtn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:20px;
+  padding:6px 12px;font-size:14px;cursor:pointer}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#16233f 0%,var(--bg) 55%) fixed,var(--bg);
+color:var(--txt);font-family:"Segoe UI",system-ui,sans-serif;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+background:rgba(12,14,19,.85);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 4px 18px rgba(59,130,246,.4)}
+.brand h1{margin:0;font-size:20px}.brand p{margin:2px 0 0;font-size:12px;color:var(--mut)}
+.home-link{color:var(--mut);text-decoration:none;font-size:13px;font-weight:600}.home-link:hover{color:var(--txt)}
+main{max-width:760px;margin:0 auto;padding:30px 20px 60px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+border-top:3px solid var(--acc);border-radius:var(--radius);padding:26px}
+.card h2{margin:0 0 6px;font-size:20px}.card .sub{margin:0 0 18px;font-size:13px;color:var(--mut)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:30px;text-align:center;cursor:pointer;
+transition:.2s;color:var(--mut);font-size:14px}
+.drop:hover,.drop.over{border-color:var(--acc);color:var(--txt);background:rgba(59,130,246,.06)}
+.drop b{color:var(--acc2)}
+.btn{display:inline-block;border:0;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:700;
+cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));
+box-shadow:0 4px 16px rgba(59,130,246,.35);transition:.15s;text-decoration:none;margin:6px 8px 0 0}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:wait}
+.status{font-size:13px;color:var(--mut);margin-top:12px;min-height:20px}
+.status.ok{color:var(--ok)}.status.err{color:#ff6b81}
+textarea{width:100%;min-height:220px;background:#0e1220;color:var(--txt);border:1px solid var(--line);
+border-radius:10px;padding:14px;font-size:14px;line-height:1.7;resize:vertical;margin-top:14px}
+#resultWrap{display:none}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:26px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb o1"></div><div class="orb o2"></div></div>
+<header class="topbar">
+  <div class="brand"><div class="azlogo">AZ</div><div><h1>AI Audio Transcriber</h1><p>audio → text + SRT subtitles</p></div></div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="home-link" href="/">← Home</a>
+    <button class="themebtn" id="themeBtn" title="Day / Night mode">☀️</button>
+  </div>
+</header>
+<main>
+<div class="card">
+  <h2>🎙 Transcribe</h2>
+  <p class="sub">Upload a voiceover or podcast — get a word-accurate transcript with SRT/TXT download.</p>
+  <div class="drop" id="dropZone">📁 <b>Click</b> or <b>drop</b> an audio file here<input type="file" id="audioInput" accept="audio/*" hidden></div>
+  <div class="row" style="max-width:420px"><label class="f">⚡ Transcription speed</label><select id="modelSel"></select></div>
+  <div class="status" id="status"></div>
+  <div id="resultWrap">
+    <textarea id="textOut" readonly></textarea><br>
+    <a class="btn" id="dlSrt" href="#">⬇ Download SRT</a>
+    <a class="btn" id="dlTxt" href="#">⬇ Download TXT</a>
+  </div>
+</div>
+</main>
+<footer><b>Az Cut</b> runs 100% on your own computer — your files never leave this machine.</footer>
+<script>
+const $=id=>document.getElementById(id);
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem('azcut-theme',t);
+  const b=document.getElementById('themeBtn'); if(b) b.textContent = t==='light' ? '🌙' : '☀️';}
+setTheme(localStorage.getItem('azcut-theme')||'dark');
+document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+
+const dz=$('dropZone'), ai=$('audioInput');
+fetch('/api/options').then(r=>r.json()).then(o=>{
+  Object.entries(o.transcribe_models||{}).forEach(([k,v])=>{const op=document.createElement('option');op.value=k;op.textContent=v;$('modelSel').appendChild(op);});
+  $('modelSel').value='base';
+});
+dz.onclick=()=>ai.click();
+['dragover','dragenter'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over');}));
+dz.addEventListener('drop',ev=>{if(ev.dataTransfer.files.length){ai.files=ev.dataTransfer.files;go();}});
+ai.onchange=go;
+function go(){
+  const f=ai.files[0]; if(!f) return;
+  const fd=new FormData(); fd.append('audio',f);
+  fd.append('model',$('modelSel').value||'base');
+  $('resultWrap').style.display='none';
+  $('status').textContent='⏳ Uploading + transcribing… (first run loads the model)'; $('status').className='status';
+  fetch('/api/audio',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.error){$('status').textContent='❌ '+d.error;$('status').className='status err';return;}
+    poll(d.audio_id);
+  });
+}
+function poll(id){
+  fetch('/api/audio/'+id).then(r=>r.json()).then(d=>{
+    if(d.status==='ready'){
+      $('status').textContent='✅ '+d.words.length+' words ('+d.duration.toFixed(1)+'s)'; $('status').className='status ok';
+      $('textOut').value=d.text;
+      $('dlSrt').href='/api/audio/'+id+'/export?format=srt';
+      $('dlTxt').href='/api/audio/'+id+'/export?format=txt';
+      $('resultWrap').style.display='block';
+    }else if(d.status==='error'){
+      $('status').textContent='❌ '+(d.error||'Transcription failed'); $('status').className='status err';
+    }else setTimeout(()=>poll(id),2000);
+  });
+}
+</script>
+</body>
+</html>

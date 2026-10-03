@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk Image Generator — Az Cut</title>
+<style>
+:root{--bg:#0c0e13;--panel:#141824;--panel2:#1a2030;--line:#262d40;--txt:#eef1f8;--mut:#9aa3b8;
+--acc:#8b5cf6;--acc2:#06b6d4;--radius:14px}
+*{box-sizing:border-box}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx::before{content:"";position:absolute;inset:-60px;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:44px 44px;opacity:.14;
+  -webkit-mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  mask-image:radial-gradient(720px 520px at 50% 0%,#000 25%,transparent 78%);
+  animation:gridpan 26s linear infinite}
+@keyframes gridpan{to{transform:translateY(44px)}}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.28;animation:drift 18s ease-in-out infinite alternate}
+.o1{width:440px;height:440px;background:var(--acc);top:-130px;right:-90px}
+.o2{width:400px;height:400px;background:var(--acc2);bottom:-150px;left:-110px;animation-delay:-9s}
+@keyframes drift{to{transform:translate(70px,45px) scale(1.15)}}
+[data-theme="light"] .orb{opacity:.15}
+[data-theme="light"]{--bg:#edf1f8;--panel:#ffffff;--panel2:#f5f7fc;--line:#d8dfee;--txt:#151a28;--mut:#5c6579}
+.azlogo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:17px;
+  letter-spacing:1px;color:#fff;font-family:"Arial Black",Arial,sans-serif;flex:none;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  box-shadow:0 4px 18px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);text-shadow:0 1px 3px rgba(0,0,0,.4)}
+.themebtn{border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:20px;
+  padding:6px 12px;font-size:14px;cursor:pointer}
+body{margin:0;background:radial-gradient(1200px 600px at 80% -10%,#2a1a4a 0%,var(--bg) 55%) fixed,var(--bg);
+color:var(--txt);font-family:"Segoe UI",system-ui,sans-serif;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;
+background:rgba(12,14,19,.85);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font-size:20px}.brand p{margin:2px 0 0;font-size:12px;color:var(--mut)}
+.home-link{color:var(--mut);text-decoration:none;font-size:13px;font-weight:600}.home-link:hover{color:var(--txt)}
+main{max-width:1080px;margin:0 auto;padding:40px 20px 60px}
+.hero{text-align:center;margin-bottom:34px}
+.hero h2{margin:0;font-size:34px;font-weight:900}
+.hero h2 .grad{background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);font-size:14px;margin:10px 0 0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+border-top:3px solid var(--acc);border-radius:var(--radius);padding:26px;display:flex;flex-direction:column}
+.card.new{border-top-color:var(--acc2)}
+.card .ico{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:26px;margin-bottom:14px;
+  background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.25));border:1px solid var(--line)}
+.card h3{margin:0 0 8px;font-size:18px}
+.card p{margin:0 0 16px;font-size:13px;color:var(--mut);line-height:1.6;flex:1}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tags span{font-size:11px;font-weight:600;color:var(--mut);background:rgba(255,255,255,.05);
+border:1px solid var(--line);border-radius:8px;padding:5px 10px}
+.btn{display:block;text-align:center;border:0;border-radius:10px;padding:13px;font-size:14px;font-weight:700;
+cursor:pointer;color:#fff;text-decoration:none;background:linear-gradient(135deg,var(--acc),var(--acc2));
+box-shadow:0 4px 16px rgba(139,92,246,.35);transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.tip{margin-top:26px;border:1px dashed var(--line);border-radius:12px;padding:16px 20px;font-size:13px;color:var(--mut);line-height:1.7}
+.tip b{color:var(--txt)}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:26px;border-top:1px solid var(--line)}
+.badge{display:inline-block;font-size:10px;font-weight:800;letter-spacing:1px;padding:4px 10px;border-radius:20px;
+  background:rgba(139,92,246,.15);color:var(--acc2);border:1px solid var(--line);margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="bgfx"><div class="orb o1"></div><div class="orb o2"></div></div>
+<header class="topbar">
+  <div class="brand"><div class="azlogo">AZ</div><div><h1>Bulk Image Generator</h1><p>AI scene images for your videos</p></div></div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="home-link" href="/">← Home</a>
+    <button class="themebtn" id="themeBtn" title="Day / Night mode">☀️</button>
+  </div>
+</header>
+<main>
+  <div class="hero">
+    <h2>Choose Your <span class="grad">Bulk Image Generator</span></h2>
+    <p>Select the workspace you want to use. It will open securely in your browser.</p>
+  </div>
+  <div class="cards">
+    <div class="card">
+      <span class="badge">ORIGINAL</span>
+      <div class="ico">🖼️</div>
+      <h3>Bulk Image Generator</h3>
+      <p>Use the original Gemini workspace for reliable bulk scene-image generation with timecodes.</p>
+      <div class="tags"><span>Gemini</span><span>Bulk Scenes</span><span>Original</span></div>
+      <a class="btn" href="https://gemini.google.com" target="_blank" rel="noopener">Open Original Generator ↗</a>
+    </div>
+    <div class="card new">
+      <span class="badge">NEW</span>
+      <div class="ico">✨</div>
+      <h3>Bulk Image Generator New</h3>
+      <p>Open the new Google Flow workspace for the latest bulk image-generation workflow.</p>
+      <div class="tags"><span>Google Flow</span><span>Latest Tool</span><span>New</span></div>
+      <a class="btn" href="https://labs.google/fx" target="_blank" rel="noopener">Open New Generator ↗</a>
+    </div>
+    <div class="card">
+      <span class="badge">EXTENSION</span>
+      <div class="ico">🧩</div>
+      <h3>Flow Extension for Bulk Image</h3>
+      <p>Open the Google Drive folder for the Flow bulk-image extension and its required files.</p>
+      <div class="tags"><span>Flow Extension</span><span>Bulk Images</span><span>Google Drive</span></div>
+      <a class="btn" href="https://drive.google.com" target="_blank" rel="noopener">Open Flow Extension ↗</a>
+    </div>
+  </div>
+  <div class="tip">
+    💡 <b>Tip:</b> Generate your scene images, then name them in order — e.g. <b>01-intro.png, 02-scene.png</b> — and drop them into <b>Studio → Step 2</b>. Use <b>Sort by name</b> there to arrange them automatically.
+  </div>
+</main>
+<footer><b>Az Cut</b> runs 100% on your own computer — your files never leave this machine.</footer>
+<script>
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem('azcut-theme',t);
+  const b=document.getElementById('themeBtn'); if(b) b.textContent = t==='light' ? '🌙' : '☀️';}
+setTheme(localStorage.getItem('azcut-theme')||'dark');
+document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
+</script>
+</body>
+</html>
